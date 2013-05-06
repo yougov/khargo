@@ -26,6 +26,9 @@ Khargo accepts four command line arguments
 
 Khargo does not daemonize.
 
+The Khargo repository includes a Procfile that will launch Khargo as a 'web'
+proc.  It expects $PORT and $DBURL environment variables to be set.
+
 Compiling
 =========
 
