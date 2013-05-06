@@ -16,13 +16,13 @@ Launch Khargo from the command line::
 
 Khargo accepts four command line arguments
 
-- consistency.  Default: "strong".  mgo driver consistency mode.  One of eventual, monotonic, or strong. See http://godoc.org/labix.org/v2/mgo#Session.SetMode.
+- -consistency.  Default: "strong".  mgo driver consistency mode.  One of eventual, monotonic, or strong. See http://godoc.org/labix.org/v2/mgo#Session.SetMode.
 
-- dburl.  Default: mongodb://localhost:27017/test. See http://godoc.org/labix.org/v2/mgo#Dial for other values.
+- -dburl.  Default: mongodb://localhost:27017/test. See http://godoc.org/labix.org/v2/mgo#Dial for other values.
 
-- max-age.  Default: 31557600.  Lifetime (in seconds) for setting Cache-Control and Expires headers.  Defaults to one year.
+- -max-age.  Default: 31557600.  Lifetime (in seconds) for setting Cache-Control and Expires headers.  Defaults to one year.
 
-- port.  Default: 8000.  Port to listen on.
+- -port.  Default: 8000.  Port to listen on.
 
 Compiling
 =========
