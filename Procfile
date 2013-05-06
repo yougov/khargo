@@ -1,1 +1,1 @@
-web: ./khargo -port $PORT -dburl $DBURL
+web: khargo -port $PORT -dburl $DBURL
