@@ -9,7 +9,6 @@ import (
     "log"
     "mime"
 	"net/http"
-    "os"
     "path/filepath"
     "strings"
     "strconv"
@@ -17,11 +16,10 @@ import (
 )
 
 func main() {
-    dburl := flag.String("dburl", "localhost",
+    dburl := flag.String("dburl", "mongodb://localhost:27017/test",
         "MongoDB URL. See http://godoc.org/labix.org/v2/mgo#Dial")
 
-    port := flag.String("port", "8000", "Port to listen on.  Set to 'env' " +
-        "to use PORT environment variable.")
+    port := flag.String("port", "8000", "Port to listen on.")
 
     mode := flag.String("consistency", "strong", "mgo driver consistency " +
         "mode.  One of eventual, monotonic, or strong. " +
@@ -55,12 +53,6 @@ func main() {
         handler(w, r, db, *maxAge)
     })
 
-    if *port == "env" {
-        *port = os.Getenv("PORT")
-        if *port == "" {
-            panic("-port=env, but PORT env var not set!")
-        }
-    }
     log.Printf("Listening on :%s\n", *port)
 	http.ListenAndServe(fmt.Sprintf(":%s", *port), nil)
 }
@@ -98,17 +90,14 @@ func handler(w http.ResponseWriter, r *http.Request, db *mgo.Database, maxAge in
     }
     defer file.Close()
 
-    // Honor the gridfs content type if set.  Otherwise guess by extension.
-    ctype := file.ContentType()
-    if ctype == "" {
-        ctype = getMimeType(filename)
-    }
-    w.Header().Set("Content-Type", ctype)
 
     // Set expiry headers
     w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d", maxAge))
     expiration := time.Now().Add(time.Duration(maxAge)*time.Second)
     w.Header().Set("Expires", expiration.Format(time.RFC1123))
+
+    ctype := getMimeType(file)
+    w.Header().Set("Content-Type", ctype)
 
     // Compress text mimetypes, but don't bother with already-compressed things
     // like jpg, png, tar.gz, etc.
@@ -150,10 +139,15 @@ func check(err error) {
 }
 
 
-func getMimeType(file string) string {
-    ctype := mime.TypeByExtension(filepath.Ext(file))
+func getMimeType(file *mgo.GridFile) string {
+    // Honor the gridfs content type if set.  Otherwise guess by extension.
+    ctype := file.ContentType()
     if ctype == "" {
-        return "application/octet-stream"
+        ctype := mime.TypeByExtension(filepath.Ext(file.Name()))
+        if ctype == "" {
+            return "application/octet-stream"
+        }
+        return ctype
     }
     return ctype
 }
@@ -177,4 +171,3 @@ func shouldCompress(encodingHeader string, mimetype string) bool {
     _, goodtype := gzippableTypes[mimetype]
     return strings.Contains(encodingHeader, "gzip") && goodtype
 }
-
