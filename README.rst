@@ -24,6 +24,8 @@ Khargo accepts four command line arguments
 
 - -port.  Default: 8000.  Port to listen on.
 
+Khargo does not daemonize.
+
 Compiling
 =========
 
