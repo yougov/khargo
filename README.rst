@@ -20,7 +20,7 @@ Khargo accepts four command line arguments
 
 - -dburl.  Default: mongodb://localhost:27017/test. See http://godoc.org/labix.org/v2/mgo#Dial for other values.
 
-- -max-age.  Default: 31557600.  Lifetime (in seconds) for setting Cache-Control and Expires headers.  Defaults to one year.
+- -max-age.  Default: 31557600 (one year).  Lifetime (in seconds) for setting Cache-Control and Expires headers.
 
 - -port.  Default: 8000.  Port to listen on.
 
