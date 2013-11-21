@@ -1,9 +1,10 @@
 Meet Khargo
 ===========
 
-
-Khargo is an http file server with a GridFS (MongoDB) backend.  If you want to
-store files in GridFS and serve them over http, Khargo can help you out.
+Khargo is a Go (golang) HTTP file server with a GridFS (MongoDB) backend. If
+you want to store files in GridFS and serve them over HTTP, Khargo can help you
+out.  It supports memory-efficient streaming of large files, and intelligent
+gzipping.
 
 Running
 =======

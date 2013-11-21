@@ -4,3 +4,4 @@ khargo
 tmp.go
 .env
 dist
+tmp/*
