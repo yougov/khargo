@@ -25,6 +25,9 @@ func main() {
 		"mode.  One of eventual, monotonic, or strong. "+
 		"See http://godoc.org/labix.org/v2/mgo#Session.SetMode.")
 
+  corsHeader := flag.String("allow-origin", "*",
+    "value for Access-Control-Allow-Origin header")
+
 	maxAge := flag.Int("max-age", 31557600, "Lifetime (in seconds) for "+
 		"setting Cache-Control and Expires headers.  Defaults to one year.")
 
@@ -50,14 +53,14 @@ func main() {
 
 	db := session.DB("") // will use DB specified in dburl
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		handler(w, r, db, *maxAge)
+		handler(w, r, db, *maxAge, *corsHeader)
 	})
 
 	log.Printf("Listening on :%s\n", *port)
 	http.ListenAndServe(fmt.Sprintf(":%s", *port), nil)
 }
 
-func handler(w http.ResponseWriter, r *http.Request, db *mgo.Database, maxAge int) {
+func handler(w http.ResponseWriter, r *http.Request, db *mgo.Database, maxAge int, corsHeader string) {
 	start := time.Now()
 	var status = new(int)
 	*status = 200
@@ -88,6 +91,9 @@ func handler(w http.ResponseWriter, r *http.Request, db *mgo.Database, maxAge in
 		return
 	}
 	defer file.Close()
+
+  // Set CORS header
+  w.Header().Set("Access-Control-Allow-Origin", corsHeader)
 
 	// Set expiry headers
 	w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d", maxAge))
