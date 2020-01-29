@@ -86,10 +86,9 @@ func handler(w http.ResponseWriter, r *http.Request, db *mgo.Database, maxAge in
 			fmt.Fprintf(w, "%s Not Found\n", filename)
 			return
 		}
-		fmt.Printf("[%s]: %v\n", filename, err)
 		*status = http.StatusInternalServerError
 		w.WriteHeader(*status)
-		fmt.Fprintf(w, "Internal Server Error\n")
+		fmt.Fprintf(w, "Internal Server Error: %v\n", err)
 		return
 	}
 	defer file.Close()
@@ -98,7 +97,7 @@ func handler(w http.ResponseWriter, r *http.Request, db *mgo.Database, maxAge in
 	w.Header().Set("Access-Control-Allow-Origin", corsHeader)
 
 	// Set expiry headers
-	w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d", maxAge))
+	w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d, must-revalidate", maxAge))
 	expiration := time.Now().Add(time.Duration(maxAge) * time.Second)
 	w.Header().Set("Expires", expiration.Format(time.RFC1123))
 
