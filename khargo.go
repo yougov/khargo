@@ -59,6 +59,13 @@ func main() {
 
 	log.Printf("Listening on :%s\n", *port)
 	http.ListenAndServe(fmt.Sprintf(":%s", *port), nil)
+
+	go func() {
+		for {
+			session.Ping()
+			time.Sleep(30 * time.Second)
+		}
+	}()
 }
 
 func handler(w http.ResponseWriter, r *http.Request, db *mgo.Database, maxAge int, corsHeader string) {
