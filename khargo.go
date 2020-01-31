@@ -52,23 +52,17 @@ func main() {
 			"monotonic, or strong.", *mode))
 	}
 
-	db := session.DB("") // will use DB specified in dburl
+	//db := session.DB("") // will use DB specified in dburl
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		handler(w, r, db, *maxAge, *corsHeader)
+		handler(w, r, session, *maxAge, *corsHeader)
 	})
 
 	log.Printf("Listening on :%s\n", *port)
 	http.ListenAndServe(fmt.Sprintf(":%s", *port), nil)
 
-	go func() {
-		for {
-			session.Ping()
-			time.Sleep(30 * time.Second)
-		}
-	}()
 }
 
-func handler(w http.ResponseWriter, r *http.Request, db *mgo.Database, maxAge int, corsHeader string) {
+func handler(w http.ResponseWriter, r *http.Request, session *mgo.Session, maxAge int, corsHeader string) {
 	start := time.Now()
 	var status = new(int)
 	*status = 200
@@ -82,6 +76,8 @@ func handler(w http.ResponseWriter, r *http.Request, db *mgo.Database, maxAge in
 	}
 
 	filename := r.URL.Path[1:]
+	s := session.Copy()
+	db := s.DB("")
 	file, err := db.GridFS("fs").Open(filename)
 
 	// Only return a 404 if the error from gridfs was 'not found'.  If
