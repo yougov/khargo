@@ -76,7 +76,10 @@ func handler(w http.ResponseWriter, r *http.Request, session *mgo.Session, maxAg
 	}
 
 	filename := r.URL.Path[1:]
+
 	s := session.Copy()
+	defer s.Close()
+
 	db := s.DB("")
 	file, err := db.GridFS("fs").Open(filename)
 
