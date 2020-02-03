@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"labix.org/v2/mgo"
 	"log"
 	"mime"
 	"net/http"
@@ -13,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"labix.org/v2/mgo"
 )
 
 func main() {
@@ -25,8 +26,8 @@ func main() {
 		"mode.  One of eventual, monotonic, or strong. "+
 		"See http://godoc.org/labix.org/v2/mgo#Session.SetMode.")
 
-  corsHeader := flag.String("allow-origin", "*",
-    "value for Access-Control-Allow-Origin header")
+	corsHeader := flag.String("allow-origin", "*",
+		"value for Access-Control-Allow-Origin header")
 
 	maxAge := flag.Int("max-age", 31557600, "Lifetime (in seconds) for "+
 		"setting Cache-Control and Expires headers.  Defaults to one year.")
@@ -51,16 +52,17 @@ func main() {
 			"monotonic, or strong.", *mode))
 	}
 
-	db := session.DB("") // will use DB specified in dburl
+	//db := session.DB("") // will use DB specified in dburl
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		handler(w, r, db, *maxAge, *corsHeader)
+		handler(w, r, session, *maxAge, *corsHeader)
 	})
 
 	log.Printf("Listening on :%s\n", *port)
 	http.ListenAndServe(fmt.Sprintf(":%s", *port), nil)
+
 }
 
-func handler(w http.ResponseWriter, r *http.Request, db *mgo.Database, maxAge int, corsHeader string) {
+func handler(w http.ResponseWriter, r *http.Request, session *mgo.Session, maxAge int, corsHeader string) {
 	start := time.Now()
 	var status = new(int)
 	*status = 200
@@ -74,6 +76,11 @@ func handler(w http.ResponseWriter, r *http.Request, db *mgo.Database, maxAge in
 	}
 
 	filename := r.URL.Path[1:]
+
+	s := session.Copy()
+	defer s.Close()
+
+	db := s.DB("")
 	file, err := db.GridFS("fs").Open(filename)
 
 	// Only return a 404 if the error from gridfs was 'not found'.  If
@@ -87,16 +94,16 @@ func handler(w http.ResponseWriter, r *http.Request, db *mgo.Database, maxAge in
 		}
 		*status = http.StatusInternalServerError
 		w.WriteHeader(*status)
-		fmt.Fprintf(w, "Internal Server Error\n")
+		fmt.Fprintf(w, "Internal Server Error: %v\n", err)
 		return
 	}
 	defer file.Close()
 
-  // Set CORS header
-  w.Header().Set("Access-Control-Allow-Origin", corsHeader)
+	// Set CORS header
+	w.Header().Set("Access-Control-Allow-Origin", corsHeader)
 
 	// Set expiry headers
-	w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d", maxAge))
+	w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d, must-revalidate", maxAge))
 	expiration := time.Now().Add(time.Duration(maxAge) * time.Second)
 	w.Header().Set("Expires", expiration.Format(time.RFC1123))
 
